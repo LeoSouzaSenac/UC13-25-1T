@@ -68,9 +68,6 @@ Crie um arquivo `index.html` com o seguinte conteúdo:
 - O código JavaScript usa o `fetch` para fazer a requisição.
 - A **API responde com um objeto JSON** contendo a piada, e o código exibe o texto na tela.
 
-## 7. Discussão e Experimentação
-Peça aos alunos para **alterarem a URL** para experimentar outras respostas, como uma API de clima para pegar a temperatura atual.
-
 ### Ideias para Projetos:
 - Exibir notícias, mostrar o clima ou até integrar redes sociais usando APIs públicas.
 
