@@ -1,139 +1,112 @@
-# Introdução ao Desenvolvimento Back-end com TypeScript
+# **Introdução ao Desenvolvimento Back-end com TypeScript**
 
-## 1. O que é Back-end? E como ele se diferencia do Front-end e Fullstack?
+## 🏗️ **1. O que é Back-end? E como ele se diferencia do Front-end e Fullstack?**
 
-O desenvolvimento de software pode ser dividido em três áreas principais:
+O desenvolvimento de software se divide em três principais áreas:
 
-| Tipo      | O que faz?                                          | Exemplos                                 |
-| --------- | --------------------------------------------------- | ---------------------------------------- |
-| Front-end | Interface do usuário, interatividade e estilização  | HTML, CSS, JavaScript, React, Vue.js     |
-| Back-end  | Lógica de negócio, segurança, banco de dados e APIs | Node.js, TypeScript, Express, NestJS     |
-| Fullstack | Atua tanto no front-end quanto no back-end          | React, Express, Node.js, bancos de dados |
+| Tipo         | O que faz?                                        | Exemplos                                      |
+|--------------|--------------------------------------------------|-----------------------------------------------|
+| **Front-end** | Interface do usuário, interatividade, estilização | HTML, CSS, JavaScript, React, Vue.js          |
+| **Back-end**  | Lógica de negócio, segurança, banco de dados, APIs | Node.js, TypeScript, Express, NestJS          |
+| **Fullstack** | Trabalha tanto no front-end quanto no back-end   | Conhece React e Express, por exemplo          |
 
-### Analogia: Restaurante
+### 🎭 **Analogia: Restaurante**
 
-* Front-end → Garçom e cardápio (interação com o cliente).
-* Back-end → Cozinha (processamento dos pedidos).
-* Banco de dados → Estoque (armazenamento dos ingredientes).
+- **Front-end** → O garçom e o cardápio (interação com o cliente).
+- **Back-end** → A cozinha (processamento dos pedidos).
+- **Banco de dados** → O estoque (onde os ingredientes são armazenados).
 
-Nesta unidade curricular, o foco será o desenvolvimento back-end, responsável pelo processamento das informações e pela comunicação com bancos de dados e outros sistemas.
-
----
-
-## 2. Introdução ao TypeScript
-
-### O que é TypeScript?
-
-TypeScript é um superset do JavaScript desenvolvido pela Microsoft que adiciona recursos como:
-
-* Tipagem estática
-* Interfaces
-* Classes avançadas
-* Melhor suporte a orientação a objetos
-* Maior segurança durante o desenvolvimento
-
-Seu principal objetivo é reduzir erros e tornar o código mais organizado e previsível.
+Nesta UC, vamos nos especializar no **back-end**, garantindo que o "cozinheiro" do sistema funcione corretamente.
 
 ---
 
-### Como o TypeScript funciona? (Transpilação)
+## 🚀 **2. Introdução ao TypeScript**
 
-Os navegadores e o Node.js executam JavaScript, não TypeScript.
+### 🔹 **O que é TypeScript?**
 
-Por esse motivo, o código TypeScript precisa ser convertido para JavaScript antes de ser executado. Esse processo é chamado de transpilação.
+TypeScript é um **superset do JavaScript** que adiciona **tipagem estática** e funcionalidades avançadas, ajudando na escrita de código mais seguro e organizado.
 
-Código TypeScript:
+### 🔄 **Como o TypeScript funciona? (Transpilação para JavaScript)**
+
+O navegador e o Node.js não entendem TypeScript. Ele precisa ser convertido em JavaScript antes de ser executado. Esse processo é chamado de **transpilação**.
 
 ```ts
+// Código TypeScript
 let nome: string = "Daniel";
 console.log(nome);
 ```
 
-Código JavaScript gerado:
+Após ser "transpilado" pelo TypeScript, vira:
 
 ```js
+// Código JavaScript gerado
 var nome = "Daniel";
 console.log(nome);
 ```
 
-Dessa forma, podemos utilizar os recursos do TypeScript sem perder compatibilidade com os ambientes JavaScript.
+Isso significa que podemos usar TypeScript sem medo, pois no final **o código será sempre convertido para JavaScript compatível com qualquer ambiente**.
 
 ---
 
-## 3. Configuração do Ambiente de Desenvolvimento
+## 🛠 **3. Configuração do Ambiente de Desenvolvimento**
 
-### 3.1 Instalando Node.js e NPM
+### 📌 **3.1 Instalando Node.js e NPM**
 
-O Node.js permite executar JavaScript fora do navegador.
+O **Node.js** é um ambiente para rodar JavaScript no servidor. O **NPM (Node Package Manager)** é o gerenciador de pacotes que permite instalar bibliotecas.
 
-O NPM (Node Package Manager) é o gerenciador de pacotes utilizado para instalar bibliotecas e dependências.
+🔹 **Passo 1: Baixar e instalar o Node.js**  
+Acesse: [https://nodejs.org/](https://nodejs.org/) e baixe a versão **LTS**.
 
-#### Passo 1: Instalar o Node.js
-
-Acesse:
-
-[https://nodejs.org/](https://nodejs.org/)
-
-Baixe e instale a versão LTS.
-
-#### Passo 2: Verificar a instalação
-
-Abra o terminal e execute:
-
+🔹 **Passo 2: Verificar instalação**  
+Após instalar, abra o terminal e execute:  
 ```bash
 node -v
 npm -v
 ```
-
-Se forem exibidos números de versão, a instalação foi concluída com sucesso.
+Se aparecer um número de versão, significa que está funcionando corretamente! 🎉
 
 ---
 
-### 3.2 Instalando e Configurando o VS Code
+### 🖥 **3.2 Instalando e Configurando o VS Code**
 
-Download:
-
+🔹 **Baixar o VS Code:**  
 [https://code.visualstudio.com/](https://code.visualstudio.com/)
 
-Extensões recomendadas:
-
-* TSLint Snippets
-* Prettier
-* Thunder Client
-* Material Icon Theme
+🔹 **Extensões recomendadas:**  
+- **TSLint Snippets** → Para manter um código padronizado.
+- **Prettier** → Para formatar código automaticamente.
+- **Thunder Client** → Para testar APIs sem precisar do `Postman`.
+- **Material Icon Theme** → Para melhorar a visualização de arquivos.
 
 ---
 
-### 3.3 Criando o Primeiro Projeto com TypeScript
+### 📁 **3.3 Criando o Primeiro Projeto com TypeScript**
 
-Criar a pasta do projeto:
-
+1️⃣ **Criar uma pasta para o projeto e acessar ela:**  
 ```bash
-mkdir meu-backend
-cd meu-backend
+mkdir meu-backend && cd meu-backend
 ```
 
-Inicializar o projeto Node:
-
+2️⃣ **Inicializar um projeto Node.js:**  
 ```bash
 npm init -y
 ```
 
-Instalar TypeScript e dependências:
-
+3️⃣ **Instalar o TypeScript no projeto:**  
 ```bash
 npm install typescript ts-node-dev @types/node -D
 ```
 
-Criar o arquivo de configuração:
-
+4️⃣ **Criar o arquivo de configuração do TypeScript:**  
 ```bash
 npx tsc --init
 ```
 
----
+Isso gera um arquivo `tsconfig.json`, que controla a transpilação do TypeScript.
 
-### Configurando o tsconfig.json
+### 🔹 **Explicação do `tsconfig.json`**
+
+Vamos modificar algumas configurações para otimizar o projeto:
 
 ```json
 {
@@ -150,70 +123,57 @@ npx tsc --init
 }
 ```
 
-#### Principais configurações
+- **`target`**: Define para qual versão do JavaScript o TypeScript vai transpilar.
+- **`module`**: Define o sistema de módulos usado (CommonJS para Node.js).
+- **`outDir`**: Define onde os arquivos transpilados vão ser salvos.
+- **`rootDir`**: Define onde os arquivos TypeScript estão localizados.
+- **`strict`**: Ativa verificações mais rígidas no código.
+- **`esModuleInterop`**: Habilita a importação de módulos no estilo ES6 para módulos CommonJS.
+- **`include`**: Define quais arquivos ou pastas devem ser incluídos da compilação.
+- **`exclude`**: Define quais arquivos ou pastas devem ser excluídos da compilação.
+---
 
-| Configuração    | Função                                     |
-| --------------- | ------------------------------------------ |
-| target          | Define a versão do JavaScript gerada       |
-| module          | Define o sistema de módulos                |
-| outDir          | Pasta dos arquivos compilados              |
-| rootDir         | Pasta dos arquivos TypeScript              |
-| strict          | Ativa verificações rigorosas               |
-| esModuleInterop | Compatibilidade com importações ES Modules |
-| include         | Arquivos incluídos na compilação           |
-| exclude         | Arquivos ignorados na compilação           |
+## 🌐 **4. O que é o Express.js?**
+
+O **Express.js** é um framework minimalista para Node.js que facilita a criação de servidores e APIs.
+
+### ✅ **Por que usar Express?**
+
+- Simples e rápido.
+- Permite criar APIs REST de forma fácil.
+- Possui um grande ecossistema e comunidade ativa.
 
 ---
 
-## 4. O que é o Express.js?
+## 🚀 **5. Criando um Servidor com TypeScript e Express**
 
-Express.js é um framework para Node.js utilizado para construir servidores web e APIs.
+### 📌 **5.1 Instalando o Express**
 
-### Vantagens do Express
-
-* Simplicidade
-* Rapidez no desenvolvimento
-* Grande comunidade
-* Fácil integração com bancos de dados
-* Estrutura flexível
-
----
-
-## 5. Criando um Servidor com TypeScript e Express
-
-### 5.1 Instalando o Express
-
-Instalação do framework:
-
+🔹 **Instalar o Express e suas tipagens**:  
 ```bash
-npm install express
-```
-
-Instalação das tipagens:
-
-```bash
+npm install express  
 npm install @types/express -D
 ```
 
-O pacote `@types/express` fornece informações de tipagem para que o TypeScript consiga entender corretamente os recursos do Express.
+**Mas por que instalamos `@types/express`?**
+
+O Express é escrito em JavaScript, mas estamos usando TypeScript. O pacote `@types/express` fornece os tipos necessários para que o TypeScript entenda o Express corretamente.
 
 ---
 
-### Estrutura do Projeto
+### 📁 **5.2 Criando a estrutura do projeto**
 
-```text
+```
 meu-backend/
-│
-├── src/
-│   └── server.ts
-│
-├── package.json
-├── tsconfig.json
+│── src/
+│   ├── server.ts
+│── tsconfig.json
+│── package.json
 ```
 
----
+Agora, vamos criar o arquivo `server.ts`. Aqui estão **duas versões** desse código:
 
-### Versão sem tipagem explícita
+### **Versão 1: `server.ts` sem tipagem explícita**
 
 ```ts
 import express from 'express';
@@ -221,345 +181,203 @@ import express from 'express';
 const app = express();
 const PORT = 3000;
 
+// Middleware para permitir que o Express interprete JSON
 app.use(express.json());
 
+// Rota GET para a raiz
 app.get('/', (req, res) => {
-  res.send('Servidor TypeScript rodando!');
+  res.send('🚀 Servidor TypeScript rodando!');
 });
 
+// Iniciando o servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🔥 Servidor rodando em http://localhost:${PORT}`);
 });
 ```
 
----
-
-### Versão com tipagem explícita
+### **Versão 2: `server.ts` com tipagem explícita**
 
 ```ts
 import express, { Application, Request, Response } from 'express';
 
-const app: Application = express();
-const PORT: number = 3000;
+const app: Application = express();  // Tipando 'app' como 'Application'
+const PORT: number = 3000;  // Tipagem da porta como número
 
+// Middleware para permitir que o Express interprete JSON
 app.use(express.json());
 
+// Rota GET para a raiz
 app.get('/', (req: Request, res: Response): void => {
-  res.send('Servidor TypeScript rodando!');
+  res.send('🚀 Servidor TypeScript rodando!');
 });
 
+// Iniciando o servidor
 app.listen(PORT, (): void => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🔥 Servidor rodando em http://localhost:${PORT}`);
 });
 ```
 
----
+### Explicando este código
 
-## Explicação do Código
+1. `const app: Application = express();`: App representa o objeto express, ou seja, a instância do nosso servidor backend. Depois de criado, podemos usar estes métodos:
 
-### 1. Instância do Express
+| Exemplo                         | Função                  |
+| ------------------------------- | ----------------------- |
+| `app.get(...)`                  | Define rotas GET        |
+| `app.post(...)`                 | Define rotas POST       |
+| `app.use(...)`                  | Aplica middlewares      |
+| `app.listen(...)`               | Inicia o servidor       |
+| `app.use('/api', router)`       | Encaixar rotas externas |
+| `app.set(...)` / `app.get(...)` | Configurações internas  |
 
+#### 2.`const PORT: number = 3000;`: 
+Define a porta 3000 para o servidor escutar (significa que o servidor está “ouvindo” essa porta esperando por conexões ou pedidos (requests)).
+Sobre portas, pense no seu computador ou servidor como um prédio. Dentro desse prédio, existem várias portas. Cada porta serve para um tipo diferente de serviço ou conversa.
+Quando alguém quer falar com um serviço específico (por exemplo, um site, um email, um jogo), essa pessoa precisa bater na porta certa.
+
+#### 3. `app.use(express.json());`
+
+Essa linha faz com que o **Express consiga entender e converter o corpo das requisições em JSON** (por exemplo: `{ "nome": "Leo" }`) para **objetos JavaScript acessíveis via `req.body`**.
+
+#### 4. `app.get('/', (req: Request, res: Response): void => {  res.send('🚀 Servidor TypeScript rodando!');});`: 
+app.get() define uma rota do tipo GET no caminho /. Quando alguém acessar http://localhost:3000/, o Express executa essa função. Essa função recebe dois argumentos:
+req: representa a requisição do cliente (navegador, por exemplo). Os tipos Request e Response vem da biblioteca do express. 
+
+res: representa a resposta que o servidor vai enviar.
+
+res.send() envia uma mensagem como resposta.
+
+Mas porque usamos send() e não um simples console.log()?
+
+ console.log(...) → Só aparece no terminal do servidor
+Serve apenas para debugar ou ver informações internamente no servidor (onde o Node.js está rodando).
+O cliente (ex: navegador) nunca verá isso. É como um "diário" do servidor. Só o desenvolvedor vê isso no terminal!
+
+res.send(...) → Responde ao cliente
+Envia uma resposta real para o cliente (navegador, app, Postman, ThunderClient etc.).Sem isso, o cliente ficaria esperando para sempre, sem resposta.
+É como dizer: "Toma aqui o conteúdo que você pediu!". Exemplo:
 ```ts
-const app: Application = express();
+res.send('Bem-vindo!');
 ```
+ O navegador vai exibir "Bem-vindo!" na tela, porque o servidor enviou isso de volta.
 
-Cria a aplicação Express que representará nosso servidor.
+| Termo      | O que é                               | De onde vem | Por que usar                                                                       |
+| ---------- | ------------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `Request`  | Tipo que representa a requisição HTTP | `express`   | Permite acessar `req.body`, `req.params`, etc. com segurança                       |
+| `Response` | Tipo que representa a resposta HTTP   | `express`   | Permite usar `res.send()`, `res.json()`, etc., com dicas e validação do TypeScript |
 
-Principais métodos disponíveis:
 
-| Método       | Função             |
-| ------------ | ------------------ |
-| app.get()    | Cria rotas GET     |
-| app.post()   | Cria rotas POST    |
-| app.put()    | Cria rotas PUT     |
-| app.delete() | Cria rotas DELETE  |
-| app.use()    | Aplica middlewares |
-| app.listen() | Inicia o servidor  |
+#### 5: `app.listen(PORT, (): void => {  console.log(`🔥 Servidor rodando em http://localhost:${PORT}`);});`:
+app.listen(PORT, ...): inicia o servidor na porta informada (por exemplo, 3000).
+(): void => { ... }: é uma função de callback (executada assim que o servidor começa a funcionar).
+console.log(...): apenas imprime no terminal uma mensagem dizendo que o servidor está no ar.
 
----
 
-### 2. Definição da Porta
-
-```ts
-const PORT: number = 3000;
-```
-
-Define a porta em que o servidor ficará escutando requisições.
-
-Uma porta funciona como um canal de comunicação entre clientes e servidores.
-
-Exemplos comuns:
-
-| Porta | Serviço         |
-| ----- | --------------- |
-| 80    | HTTP            |
-| 443   | HTTPS           |
-| 3000  | Desenvolvimento |
-| 3306  | MySQL           |
-
----
-
-### 3. Middleware express.json()
-
-```ts
-app.use(express.json());
-```
-
-Permite que o Express interprete automaticamente requisições contendo JSON.
-
-Exemplo de JSON enviado:
-
-```json
-{
-  "nome": "Leonardo"
-}
-```
-
-Após a conversão, os dados ficam disponíveis em:
-
-```ts
-req.body
-```
 
 ---
 
-## O que são Middlewares?
+### 🧠 Explicando por partes:
 
-Middlewares são funções executadas entre a chegada da requisição e o envio da resposta.
+- `app.use()` → Adiciona um **middleware**, ou seja, uma função que processa a requisição **antes** dela chegar nas suas rotas.
+- `express.json()` → É um middleware pronto do Express que **lê o corpo da requisição** quando ele está no formato JSON.
+- **Sem esse middleware**, o Express **não entenderia os dados JSON enviados** (por exemplo, no corpo de um POST).
+- **Com ele**, o Express **converte o JSON automaticamente** e deixa os dados disponíveis em `req.body`.
+
+---
+
+### 📦 O que são Middlewares?
+
+Middlewares são **funções que ficam "no meio do caminho"** entre a requisição do cliente e a resposta do servidor.
 
 Eles podem:
 
-* Validar dados
-* Ler JSON
-* Realizar autenticação
-* Registrar logs
-* Tratar erros
-
-### Fluxo simplificado
-
-```text
-Cliente
-   ↓
-Middleware
-   ↓
-Middleware
-   ↓
-Rota
-   ↓
-Resposta
-```
+- 📖 Ler dados (como JSON)
+- 🔐 Verificar se o usuário está logado
+- 📝 Registrar ações no log
+- ✅ Validar dados
+- 🔄 Fazer outras tarefas antes de enviar a resposta
 
 ---
 
-### Analogia
+### 🍽️ Analogia simples: restaurante
 
-Imagine um restaurante:
+Imagine um cliente fazendo um pedido em um restaurante:
 
-1. Cliente faz o pedido.
-2. Garçom registra o pedido.
-3. Cozinha prepara a refeição.
-4. Conferência final.
-5. Entrega ao cliente.
+1. O cliente faz o pedido.
+2. O pedido passa por várias etapas:
+   - O garçom anota.
+   - A cozinha prepara.
+   - Alguém confere.
+3. Só depois o prato vai para a mesa.
 
-Cada etapa representa um middleware executando alguma tarefa antes da resposta final.
-
----
-
-### 4. Definindo uma Rota
-
-```ts
-app.get('/', (req: Request, res: Response): void => {
-  res.send('Servidor TypeScript rodando!');
-});
-```
-
-Quando o usuário acessar:
-
-```text
-http://localhost:3000/
-```
-
-Essa função será executada.
-
-#### Request
-
-Representa a requisição recebida.
-
-Exemplos:
-
-```ts
-req.body
-req.params
-req.query
-req.headers
-```
-
-#### Response
-
-Representa a resposta enviada ao cliente.
-
-Exemplos:
-
-```ts
-res.send()
-res.json()
-res.status()
-```
+👉 Essas etapas são como **middlewares**: cada uma faz algo **antes da resposta final (comida na mesa)**.
 
 ---
 
-### Por que usar res.send() em vez de console.log()?
+### ✅ No nosso caso:
 
-```ts
-console.log("Teste");
-```
+O middleware `express.json()` faz o papel de:
+> “Antes de continuar, **converta o corpo da requisição em JSON**.”
 
-Exibe uma mensagem apenas no terminal do servidor.
-
-Já:
-
-```ts
-res.send("Teste");
-```
-
-Envia uma resposta para o cliente.
-
-Sem uma resposta, o navegador permaneceria aguardando indefinidamente.
+Assim, você pode acessar os dados direto em `req.body`.
 
 ---
 
-### 5. Iniciando o Servidor
 
-```ts
-app.listen(PORT, (): void => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
-```
+### **Diferenças e Importância da Tipagem**
 
-Esse comando coloca o servidor em execução e o mantém aguardando conexões.
+1. **Tipagem de `app` como `Application`**: No TypeScript, a variável `app` é do tipo `express.Application`. Embora o Express funcione corretamente sem tipagem explícita, é uma boa prática tipar a variável `app` como `Application`. Isso ajuda a evitar erros, já que o TypeScript vai fornecer autocompletar e verificações de tipo em todas as operações que você faz com o `app`.
 
----
+2. **Tipagem de `req` e `res`**: Ao adicionar as tipagens explícitas para `req` (Request) e `res` (Response), você garante que o TypeScript consiga verificar os tipos de dados com os quais está lidando nas rotas. Por exemplo, ele vai verificar se os parâmetros da requisição são compatíveis com o esperado e pode até te avisar sobre erros antes de você rodar o código.
 
-## Importância da Tipagem
-
-### Tipagem da aplicação
-
-```ts
-const app: Application = express();
-```
-
-Fornece autocompletar e validações mais precisas.
+3. **`PORT` tipado como `number`**: Embora o TypeScript consiga inferir o tipo de `PORT` com base no valor atribuído, sempre é uma boa prática tipar explicitamente variáveis, especialmente se o valor de `PORT` for modificado ou se você estiver trabalhando com valores mais complexos. Isso ajuda a evitar bugs e confusões.
 
 ---
 
-### Tipagem de Request e Response
+# 🔥 **6. Como Rodar a Aplicação**
 
-```ts
-(req: Request, res: Response)
-```
+Para rodar o servidor TypeScript com recarga automática durante o desenvolvimento, vamos usar o `ts-node-dev`. O `ts-node-dev` é uma ferramenta que transpila o código TypeScript em tempo real, permitindo que as mudanças sejam refletidas sem precisar reiniciar o servidor manualmente.
 
-Permite que o TypeScript valide o acesso aos dados da requisição e resposta.
-
----
-
-### Tipagem da Porta
-
-```ts
-const PORT: number = 3000;
-```
-
-Garante que apenas números possam ser atribuídos à variável.
-
----
-
-## 6. Executando a Aplicação
-
-Para iniciar o servidor em modo de desenvolvimento:
+🔹 **Rodando a aplicação com `ts-node-dev`**
+Execute o seguinte comando para rodar o servidor com `ts-node-dev`:
 
 ```bash
 npx ts-node-dev src/server.ts
 ```
 
-Benefícios:
+Esse comando irá:
 
-* Executa arquivos TypeScript diretamente.
-* Detecta alterações automaticamente.
-* Reinicia o servidor sem intervenção manual.
-
----
-
-## Revisão
-
-* Diferenças entre Front-end, Back-end e Fullstack.
-* Conceitos fundamentais do TypeScript.
-* Configuração do ambiente Node.js.
-* Instalação e utilização do Express.
-* Criação de um servidor utilizando TypeScript.
-* Uso de middlewares.
-* Execução do projeto com ts-node-dev.
+1. Rodar o arquivo `server.ts` localizado na pasta `src`.
+2. Fazer a transpilação automática do código TypeScript sempre que você fizer uma alteração.
+3. Reiniciar o servidor sem precisar de intervenção manual.
 
 ---
 
-# Exercícios
+# 🏆 **Recapitulando**
 
-### Exercício 1
-
-Crie uma rota:
-
-```http
-GET /meunome
-```
-
-Resposta esperada:
-
-```text
-Olá, meu nome é Leonardo!
-```
-
-(Substitua pelo seu nome.)
+✅ Aprendemos as diferenças entre **Front-end, Back-end e Fullstack**.   
+✅ Compreendemos o que é **TypeScript e como ele funciona**.   
+✅ Configuramos **o ambiente de desenvolvimento (VS Code, Node.js, TypeScript)**.   
+✅ Criamos um servidor usando **Express.js e TypeScript**, com e sem tipagem explícita.   
+✅ Aprendemos a rodar o servidor com **`ts-node-dev`** para um desenvolvimento mais ágil.
 
 ---
 
-### Exercício 2
+# 🎯 **Exercícios**
 
-Altere a porta do servidor para outra porta disponível.
+- Tente criar uma nova rota no servidor que retorne seu nome.  
+- Experimente mudar a porta do servidor.
+- Implemente as seguintes rotas no servidor:
 
----
+## `GET /`
 
-### Exercício 3
+* Resposta: `"Servidor está funcionando perfeitamente 🚀"`
 
-Implemente as seguintes rotas:
+## 📍 `GET /meunome`
 
-#### GET /
+* Resposta: `"Olá, meu nome é [Seu Nome]!"`
+  *(Substitua `[Seu Nome]` pelo seu nome real.)*
 
-Resposta:
 
-```text
-Servidor está funcionando perfeitamente.
-```
 
-#### GET /meunome
-
-Resposta:
-
-```text
-Olá, meu nome é [Seu Nome].
-```
-
-#### GET /curso
-
-Resposta:
-
-```text
-Estou aprendendo desenvolvimento back-end com TypeScript.
-```
-
-#### GET /cidade
-
-Resposta:
-
-```text
-Eu moro em [Sua Cidade].
-```
-
-(Substitua pelos seus dados.)
+sem emoji
