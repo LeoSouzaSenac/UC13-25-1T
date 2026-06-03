@@ -79,7 +79,8 @@ header p{
 
     border-radius:20px;
 
-    
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.15);
 }
 
 /* ========================= */
@@ -289,6 +290,34 @@ footer h2{
 
 }
 
+.play-button{
+    display:block;
+    margin:20px auto 0;
+    padding:12px 25px;
+    font-family:'Press Start 2P', cursive;
+    font-size:12px;
+
+    background:var(--pokemon-yellow);
+    color:#000;
+
+    border:none;
+    border-radius:10px;
+
+    cursor:pointer;
+
+    box-shadow:0 6px 0 #b38b00;
+    transition:0.2s;
+}
+
+.play-button:hover{
+    transform:translateY(-2px);
+}
+
+.play-button:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #b38b00;
+}
+
 </style>
 </head>
 
@@ -300,6 +329,10 @@ footer h2{
 class="main-image"
 src="https://infograficos-estaticos.s3.amazonaws.com/pokemon-de-onde-veio/assets/imagens/pokemon-logo.gif"
 alt="Pokémon Logo">
+
+<button id="play-btn" class="play-button">
+    ▶ PLAY BATALHA
+</button>
 
 <h1>SIMULAÇÃO DE BATALHA POKÉMON</h1>
 
@@ -551,6 +584,20 @@ Toda batalha Pokémon merece uma trilha sonora épica.
 </p>
 
 </footer>
+
+<audio id="battle-audio" loop>
+    <source src="poke.mpeg" type="audio/mpeg">
+</audio>
+
+<script>
+const audio = document.getElementById('battle-audio');
+const btn = document.getElementById('play-btn');
+
+btn.addEventListener('click', () => {
+    audio.play();
+    btn.innerText = "🎵 BATALHA INICIADA";
+});
+</script>
 
 </body>
 </html>
