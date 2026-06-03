@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Projeto Pokémon Battle Simulator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --pokemon-yellow:#ffcb05;
+    --pokemon-blue:#2a75bb;
+    --pokemon-dark-blue:#1f4f80;
+    --pokemon-red:#e3350d;
+    --bg:#f4f7fb;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        135deg,
+        #dfefff,
+        #ffffff
+    );
+    color:#333;
+    line-height:1.7;
+}
+
+/* ========================= */
+/* HEADER */
+/* ========================= */
+
+header{
+    background: linear-gradient(
+        135deg,
+        var(--pokemon-blue),
+        var(--pokemon-dark-blue)
+    );
+    color:white;
+    text-align:center;
+    padding:60px 20px;
+}
+
+header h1{
+    font-family:'Press Start 2P', cursive;
+    color:var(--pokemon-yellow);
+    line-height:1.8;
+    text-shadow:4px 4px 0 #000;
+    margin-bottom:20px;
+}
+
+header p{
+    font-size:1.1rem;
+    margin-bottom:20px;
+}
+
+/* ========================= */
+/* IMAGENS PADRONIZADAS */
+/* ========================= */
+
+.main-image{
+    display:block;
+    margin:30px auto;
+
+    width:100%;
+    max-width:800px;
+    height:450px;
+
+    object-fit:contain;
+
+    border-radius:20px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.15);
+}
+
+/* ========================= */
+/* CONTAINER */
+/* ========================= */
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    padding:40px 0;
+}
+
+/* ========================= */
+/* CARDS */
+/* ========================= */
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    margin-bottom:30px;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+}
+
+.section-title{
+    color:var(--pokemon-blue);
+    margin-bottom:20px;
+    font-size:2rem;
+
+    border-left:8px solid var(--pokemon-yellow);
+    padding-left:15px;
+}
+
+/* ========================= */
+/* PROFESSOR */
+/* ========================= */
+
+.professor{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:20px;
+}
+
+/* ========================= */
+/* HIGHLIGHT */
+/* ========================= */
+
+.highlight{
+    background:#fff7d6;
+    border-left:6px solid var(--pokemon-yellow);
+
+    padding:20px;
+    margin-top:20px;
+
+    border-radius:10px;
+}
+
+/* ========================= */
+/* TECNOLOGIAS */
+/* ========================= */
+
+.tech-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.tech{
+    text-align:center;
+    padding:25px;
+
+    border-radius:15px;
+    background:#f7f9fc;
+
+    transition:.3s;
+}
+
+.tech:hover{
+    transform:translateY(-5px);
+}
+
+.tech h3{
+    color:var(--pokemon-blue);
+    margin-bottom:10px;
+}
+
+/* ========================= */
+/* REFERÊNCIA */
+/* ========================= */
+
+.reference{
+    text-align:center;
+}
+
+/* ========================= */
+/* ESTRUTURA */
+/* ========================= */
+
+.structure{
+    background:#1e1e1e;
+    color:#4eff74;
+
+    padding:20px;
+    border-radius:15px;
+
+    overflow:auto;
+}
+
+.structure pre{
+    white-space:pre-wrap;
+}
+
+/* ========================= */
+/* LISTAS */
+/* ========================= */
+
+ul{
+    padding-left:25px;
+}
+
+ul li{
+    margin-bottom:10px;
+}
+
+/* ========================= */
+/* DESAFIOS */
+/* ========================= */
+
+.challenge{
+    background:#eef6ff;
+
+    padding:15px;
+    margin-bottom:15px;
+
+    border-radius:10px;
+}
+
+/* ========================= */
+/* BADGES */
+/* ========================= */
+
+.badge{
+    display:inline-block;
+
+    background:var(--pokemon-yellow);
+    color:black;
+
+    font-weight:bold;
+
+    padding:10px 18px;
+    margin:5px;
+
+    border-radius:999px;
+}
+
+/* ========================= */
+/* AUDIO */
+/* ========================= */
+
+.audio-box{
+    background:#fff7d6;
+
+    padding:20px;
+    border-radius:15px;
+}
+
+/* ========================= */
+/* FOOTER */
+/* ========================= */
+
+footer{
+    text-align:center;
+
+    background:var(--pokemon-blue);
+    color:white;
+
+    padding:60px 20px;
+}
+
+footer h2{
+    color:var(--pokemon-yellow);
+    margin-bottom:15px;
+}
+
+/* ========================= */
+/* RESPONSIVO */
+/* ========================= */
+
+@media(max-width:768px){
+
+    .main-image{
+        height:auto;
+    }
+
+    header h1{
+        font-size:1rem;
+    }
+
+    .section-title{
+        font-size:1.5rem;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<img
+class="main-image"
+src="https://infograficos-estaticos.s3.amazonaws.com/pokemon-de-onde-veio/assets/imagens/pokemon-logo.gif"
+alt="Pokémon Logo">
+
+<h1>SIMULAÇÃO DE BATALHA POKÉMON</h1>
+
+<p>
+Projeto utilizando HTML, CSS, JavaScript e PokeAPI
+</p>
+
+<div>
+<span class="badge">HTML</span>
+<span class="badge">CSS</span>
+<span class="badge">JavaScript</span>
+<span class="badge">PokeAPI</span>
+</div>
+
+</header>
+
+<div class="container">
+
+<section class="card">
+
+<h2 class="section-title">
+🧪 Mensagem do Professor Carvalho
+</h2>
+
+<div class="professor">
+
+<img
+class="main-image"
+src="https://cinemabeerbuddy.wordpress.com/wp-content/uploads/2013/11/1.jpg"
+alt="Professor Carvalho">
+
+<div>
+
+<p>
+Olá, treinador!
+</p>
+
+<br>
+
+<p>
+Nos últimos anos, meu laboratório tem estudado novas formas de registrar informações Pokémon utilizando sistemas computacionais.
+</p>
+
+<br>
+
+<p>
+Sua missão será desenvolver uma aplicação web capaz de simular visualmente uma batalha Pokémon inspirada nos jogos clássicos da franquia.
+</p>
+
+<div class="highlight">
+
+🔥 Pokémon Fire Red<br>
+🍃 Pokémon Leaf Green<br>
+💎 Pokémon Emerald
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+🎯 Objetivo
+</h2>
+
+<div class="tech-grid">
+
+<div class="tech">
+<h3>🌐 HTML</h3>
+<p>Estrutura da página</p>
+</div>
+
+<div class="tech">
+<h3>🎨 CSS</h3>
+<p>Interface da batalha</p>
+</div>
+
+<div class="tech">
+<h3>⚡ JavaScript</h3>
+<p>Manipulação do DOM</p>
+</div>
+
+<div class="tech">
+<h3>📚 PokeAPI</h3>
+<p>Dados reais dos Pokémon</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+🖼️ Referência Visual
+</h2>
+
+<div class="reference">
+
+<img
+class="main-image"
+src="https://upload.wikimedia.org/wikipedia/en/f/f0/Pok%C3%A9mon_FireRed_first_battle.png"
+alt="Referência da batalha">
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+📁 Estrutura Obrigatória do Projeto
+</h2>
+
+<div class="structure">
+
+<pre>
+projeto/
+│
+├── index.html
+│
+└── assets/
+    │
+    ├── css/
+    │   └── style.css
+    │
+    ├── js/
+    │   └── script.js
+    │
+    ├── img/
+    │   ├── referencia-batalha.png
+    │   └── demais imagens
+    │
+    └── audio/
+        └── battle-theme.mp3
+</pre>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+📚 Requisitos Obrigatórios
+</h2>
+
+<ul>
+<li>Consumir dados da PokeAPI.</li>
+<li>Exibir Pokémon adversário.</li>
+<li>Exibir Pokémon do jogador.</li>
+<li>Mostrar nome dos Pokémon.</li>
+<li>Mostrar nível dos Pokémon.</li>
+<li>Exibir barra de HP.</li>
+<li>Adicionar caixa de diálogo.</li>
+<li>Adicionar menu de golpes.</li>
+<li>Utilizar informações reais obtidas da API.</li>
+</ul>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+🎵 Música de Batalha
+</h2>
+
+<p>
+Toda batalha Pokémon merece uma trilha sonora épica.
+</p>
+
+<br>
+
+<div class="audio-box">
+
+<pre>
+&lt;audio controls autoplay loop&gt;
+    &lt;source src="assets/audio/battle-theme.mp3" type="audio/mpeg"&gt;
+&lt;/audio&gt;
+</pre>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+🏆 Desafios Extras
+</h2>
+
+<div class="challenge">⭐ Permitir escolher os Pokémon da batalha.</div>
+
+<div class="challenge">⭐ Exibir mensagens dinâmicas na caixa de diálogo.</div>
+
+<div class="challenge">⭐⭐ Criar uma barra de HP funcional.</div>
+
+<div class="challenge">⭐⭐ Adicionar animações de ataque.</div>
+
+<div class="challenge">⭐⭐⭐ Implementar turnos.</div>
+
+<div class="challenge">⭐⭐⭐⭐ Criar uma batalha totalmente funcional.</div>
+
+<div class="challenge">⭐⭐⭐ Adicionar Pokémon Shiny.</div>
+
+<div class="challenge">⭐⭐ Exibir informações extras ao passar o mouse.</div>
+
+</section>
+
+<section class="card">
+
+<h2 class="section-title">
+📊 Critérios de Avaliação
+</h2>
+
+<ul>
+<li>📂 Organização do projeto</li>
+<li>🏗️ Estrutura HTML</li>
+<li>🎨 Qualidade do CSS</li>
+<li>⚡ Manipulação do DOM</li>
+<li>📚 Consumo correto da PokeAPI</li>
+<li>🎮 Fidelidade visual à referência</li>
+<li>💡 Criatividade</li>
+<li>🚀 Recursos extras implementados</li>
+</ul>
+
+</section>
+
+</div>
+
+<footer>
+
+<h2>
+🎓 Boa Sorte, Treinador!
+</h2>
+
+<p>
+"Lembre-se: um grande treinador Pokémon não é apenas aquele que vence batalhas, mas aquele que compreende seus Pokémon e utiliza seus conhecimentos para superar desafios."
+</p>
+
+<br>
+
+<p>
+⚡ Gotta Catch 'Em All! ⚡
+</p>
+
+</footer>
+
+</body>
+</html>
