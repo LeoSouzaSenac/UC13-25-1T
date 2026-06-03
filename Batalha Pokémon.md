@@ -1,11 +1,13 @@
 Projeto: Simulação de Batalha Pokémon com HTML, CSS, JavaScript e PokeAPI
 
 <p align="center">
-  <img width="450" height="434" alt="image" src="https://github.com/user-attachments/assets/8a39248c-1298-4413-abbe-c3f69aaa0809" />
-</p>
-<p align="center">
   <img src="https://infograficos-estaticos.s3.amazonaws.com/pokemon-de-onde-veio/assets/imagens/pokemon-logo.gif">
 </p>
+
+<p align="center">
+  <img width="450" height="434" alt="image" src="https://github.com/user-attachments/assets/8a39248c-1298-4413-abbe-c3f69aaa0809" />
+</p>
+
 
 ⸻
 
@@ -53,6 +55,10 @@ Referência Visual
 
 A interface desenvolvida deverá ser inspirada na imagem abaixo:
 
+<p align="center">
+  <img width="450" height="434" alt="image" src="https://upload.wikimedia.org/wikipedia/en/f/f0/Pok%C3%A9mon_FireRed_first_battle.png" />
+</p>
+
 Procure reproduzir o máximo possível dos elementos presentes na imagem:
 
 * Cenário;
@@ -85,7 +91,6 @@ projeto/
     │
     ├── img/
     │   ├── referencia-batalha.png
-    │   ├── pokemon-logo.png
     │   └── demais imagens
     │
     └── audio/
