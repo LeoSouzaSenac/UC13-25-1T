@@ -4,7 +4,7 @@ Projeto: Simulação de Batalha Pokémon com HTML, CSS, JavaScript e PokeAPI
   <img width="450" height="434" alt="image" src="https://github.com/user-attachments/assets/8a39248c-1298-4413-abbe-c3f69aaa0809" />
 </p>
 <p align="center">
-  <img src="https://infograficos-estaticos.s3.amazonaws.com/pokemon-de-onde-veio/assets/imagens/pokemon-logo.gif" width="450">
+  <img src="https://infograficos-estaticos.s3.amazonaws.com/pokemon-de-onde-veio/assets/imagens/pokemon-logo.gif">
 </p>
 
 ⸻
