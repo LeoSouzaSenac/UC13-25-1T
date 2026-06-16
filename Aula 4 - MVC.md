@@ -1,285 +1,595 @@
-# **Aula 4: Models, Services, Controllers e Rotas no Express**
+# Aula 4: Models, Services, Controllers e Rotas no Express com MySQL
 
-## **Objetivos da Aula**
+## Objetivos da Aula
 
-* Entender o conceito de **MVC (Model-View-Controller)**.
-* Compreender a importância da camada **Service** na arquitetura.
-* Estruturar um projeto Express com separação correta de responsabilidades.
-* Criar um **CRUD básico** usando boas práticas de organização.
-
----
-
-# **1. O que é MVC?**
-
-O **MVC (Model-View-Controller)** é um padrão de arquitetura que organiza a aplicação separando responsabilidades.
-
-* **Model (Modelo)** → Representa os dados e a estrutura da entidade.
-* **Controller (Controlador)** → Recebe requisições HTTP e delega a lógica para os services.
-* **View (Visão)** → Interface com o usuário (não será usada aqui, pois estamos criando uma API).
-
-### **Problema do MVC puro**
-
-Em aplicações reais, o Controller pode ficar sobrecarregado com regras de negócio.
-
-### **Solução: Service Layer**
-
-A camada **Service** é responsável por:
-
-* Regras de negócio
-* Processamento de dados
-* Comunicação com o Model
+* Entender o conceito de MVC.
+* Compreender a importância da camada Service.
+* Utilizar MySQL para persistência de dados.
+* Organizar uma API Express utilizando boas práticas.
+* Criar um CRUD completo conectado ao banco de dados.
 
 ---
 
-# **2. Estrutura do Projeto**
+# 1. O que é MVC?
 
-```
-express-mvc/
-│── src/
-│   ├── models/
-│   │   ├── User.ts
-│   ├── services/
-│   │   ├── UserService.ts
-│   ├── controllers/
-│   │   ├── UserController.ts
-│   ├── routes/
-│   │   ├── UserRoutes.ts
-│   ├── server.ts
-│── package.json
-│── tsconfig.json
-```
+MVC (Model-View-Controller) é um padrão de arquitetura utilizado para separar responsabilidades dentro da aplicação.
 
----
+## Model
 
-# **3. Responsabilidade de cada camada**
+Responsável por representar a estrutura dos dados.
 
-### Model
-
-* Define estrutura dos dados
-* Representa a entidade
-* Não contém regras de negócio
-
-### Service
-
-* Contém toda a lógica da aplicação
-* Manipula dados (CRUD)
-* Regras de validação e consistência
-
-### Controller
-
-* Recebe requisições HTTP
-* Chama o Service
-* Retorna respostas HTTP
-
-### Routes
-
-* Define endpoints
-* Direciona requisições para Controllers
-
----
-
-# **4. Implementação do CRUD**
-
----
-
-## **Model – `models/User.ts`**
+Exemplo:
 
 ```ts
-export class User {
-    public id: number;
-    public nome: string;
-    public email: string;
+export class Usuario {
 
-    constructor(id: number, nome: string, email: string) {
+    private id?: number;
+    private email: string;
+    private senha: string;
+
+    constructor(
+        email: string,
+        senha: string,
+        id?: number
+    ) {
         this.id = id;
-        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+    }
+
+    public getId(): number | undefined {
+        return this.id;
+    }
+
+    public setId(id: number): void {
+        this.id = id;
+    }
+
+    public getEmail(): string {
+        return this.email;
+    }
+
+    public setEmail(email: string): void {
         this.email = email;
     }
-}
 
-export const usuarios: User[] = [];
+    public getSenha(): string {
+        return this.senha;
+    }
+
+    public setSenha(senha: string): void {
+        this.senha = senha;
+    }
+}
+```
+
+## Controller
+
+Recebe requisições HTTP.
+
+Exemplos:
+
+* GET
+* POST
+* PUT
+* DELETE
+
+O Controller não deve conter regras de negócio.
+
+## View
+
+Camada visual da aplicação.
+
+Como estamos criando uma API REST, não utilizaremos Views.
+
+---
+
+# Problema do MVC Tradicional
+
+Quando a aplicação cresce, o Controller acaba acumulando:
+
+* Validações
+* Consultas ao banco
+* Regras de negócio
+* Processamentos
+
+Isso torna o código difícil de manter.
+
+---
+
+# Solução: Service Layer
+
+A camada Service é responsável por:
+
+* Regras de negócio
+* Validações
+* Comunicação com o banco de dados
+* Processamento de dados
+
+Fluxo:
+
+```txt
+Route
+ ↓
+Controller
+ ↓
+Service
+ ↓
+Banco de Dados
 ```
 
 ---
 
-## **Service – `services/UserService.ts`**
+# 2. Estrutura do Projeto
 
-Aqui fica toda a regra de negócio.
+```txt
+src/
+│
+├── controllers/
+│   └── UsuarioController.ts
+│
+├── services/
+│   └── UsuarioService.ts
+│
+├── routes/
+│   └── UsuarioRoutes.ts
+│
+├── models/
+│   └── Usuario.ts
+│
+├── database.ts
+│
+└── server.ts
+```
+
+---
+
+# 3. Configuração do Banco
+
+## database.ts
 
 ```ts
-import { User, usuarios } from "../models/User";
+import mysql from "mysql2/promise";
 
-export class UserService {
+export const pool = mysql.createPool({
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "biblioteca"
+});
+```
 
-    create(id: number, nome: string, email: string): User {
-        const usuario = new User(id, nome, email);
-        usuarios.push(usuario);
-        return usuario;
+---
+
+# 4. Criando a Tabela
+
+```sql
+CREATE DATABASE biblioteca;
+
+USE biblioteca;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL,
+    senha VARCHAR(100) NOT NULL
+);
+```
+
+---
+
+# 5. Model
+
+## models/Usuario.ts
+
+```ts
+export class Usuario {
+
+    private id?: number;
+    private email: string;
+    private senha: string;
+
+    constructor(
+        email: string,
+        senha: string,
+        id?: number
+    ) {
+        this.id = id;
+        this.email = email;
+        this.senha = senha;
     }
 
-    findAll(): User[] {
-        return usuarios;
+    public getId(): number | undefined {
+        return this.id;
     }
 
-    update(id: number, nome: string, email: string): User | null {
-        const usuario = usuarios.find(u => u.id === id);
-
-        if (!usuario) {
-            return null;
-        }
-
-        usuario.nome = nome;
-        usuario.email = email;
-
-        return usuario;
+    public setId(id: number): void {
+        this.id = id;
     }
 
-    delete(id: number): boolean {
-        const index = usuarios.findIndex(u => u.id === id);
+    public getEmail(): string {
+        return this.email;
+    }
 
-        if (index === -1) {
-            return false;
-        }
+    public setEmail(email: string): void {
+        this.email = email;
+    }
 
-        usuarios.splice(index, 1);
-        return true;
+    public getSenha(): string {
+        return this.senha;
+    }
+
+    public setSenha(senha: string): void {
+        this.senha = senha;
     }
 }
 ```
 
 ---
 
-## **Controller – `controllers/UserController.ts`**
+# 6. Service
 
-O Controller apenas recebe e responde requisições.
+Toda a lógica da aplicação ficará aqui.
+
+## services/UsuarioService.ts
+
+```ts
+import { pool } from "../database";
+import { Usuario } from "../models/Usuario";
+
+export class UsuarioService {
+
+    async create(email: string, senha: string) {
+
+        const usuario = new Usuario(
+            email,
+            senha
+        );
+
+        const [result] = await pool.query(
+            "INSERT INTO usuarios (email, senha) VALUES (?, ?)",
+            [
+                usuario.getEmail(),
+                usuario.getSenha()
+            ]
+        );
+
+        return result;
+    }
+
+    async findAll() {
+
+        const [rows] = await pool.query(
+            "SELECT * FROM usuarios"
+        );
+
+        return rows;
+    }
+
+    async findById(id: number) {
+
+        const [rows]: any = await pool.query(
+            "SELECT * FROM usuarios WHERE id = ?",
+            [id]
+        );
+
+        return rows[0];
+    }
+
+    async update(
+        id: number,
+        email: string,
+        senha: string
+    ) {
+
+        const [result] = await pool.query(
+            `UPDATE usuarios
+             SET email = ?, senha = ?
+             WHERE id = ?`,
+            [
+                email,
+                senha,
+                id
+            ]
+        );
+
+        return result;
+    }
+
+    async delete(id: number) {
+
+        const [result] = await pool.query(
+            "DELETE FROM usuarios WHERE id = ?",
+            [id]
+        );
+
+        return result;
+    }
+}
+```
+
+---
+
+# 7. Controller
+
+Recebe requisições HTTP e chama o Service.
+
+## controllers/UsuarioController.ts
 
 ```ts
 import { Request, Response } from "express";
-import { UserService } from "../services/UserService";
+import { UsuarioService } from "../services/UsuarioService";
 
-export class UserController {
+export class UsuarioController {
 
-    private service = new UserService();
+    private service = new UsuarioService();
 
-    createUser(req: Request, res: Response): Response {
-        const { id, nome, email } = req.body;
+    async createUsuario(
+        req: Request,
+        res: Response
+    ) {
 
-        if (!id || !nome || !email) {
-            return res.status(400).json({ mensagem: "Id, nome e email são obrigatórios!" });
+        try {
+
+            const { email, senha } = req.body;
+
+            if (!email || !senha) {
+                return res.status(400).json({
+                    mensagem: "Email e senha são obrigatórios"
+                });
+            }
+
+            await this.service.create(
+                email,
+                senha
+            );
+
+            return res.status(201).json({
+                mensagem: "Usuário criado com sucesso"
+            });
+
+        } catch {
+
+            return res.status(500).json({
+                mensagem: "Erro interno"
+            });
+
         }
-
-        const usuario = this.service.create(id, nome, email);
-
-        return res.status(201).json({
-            mensagem: "Usuário criado com sucesso!",
-            usuario
-        });
     }
 
-    listAllUsers(req: Request, res: Response): Response {
-        const users = this.service.findAll();
-        return res.status(200).json(users);
+    async listUsuarios(
+        req: Request,
+        res: Response
+    ) {
+
+        try {
+
+            const usuarios =
+                await this.service.findAll();
+
+            return res.status(200).json(
+                usuarios
+            );
+
+        } catch {
+
+            return res.status(500).json({
+                mensagem: "Erro interno"
+            });
+
+        }
     }
 
-    updateUser(req: Request, res: Response): Response {
-        const id = Number(req.params.id);
-        const { nome, email } = req.body;
+    async getUsuario(
+        req: Request,
+        res: Response
+    ) {
 
-        if (!nome || !email) {
-            return res.status(400).json({ mensagem: "Nome e email são obrigatórios!" });
+        try {
+
+            const id = Number(
+                req.params.id
+            );
+
+            const usuario =
+                await this.service.findById(id);
+
+            if (!usuario) {
+                return res.status(404).json({
+                    mensagem: "Usuário não encontrado"
+                });
+            }
+
+            return res.status(200).json(
+                usuario
+            );
+
+        } catch {
+
+            return res.status(500).json({
+                mensagem: "Erro interno"
+            });
+
         }
-
-        const usuario = this.service.update(id, nome, email);
-
-        if (!usuario) {
-            return res.status(404).json({ mensagem: "Usuário não encontrado!" });
-        }
-
-        return res.status(200).json({
-            mensagem: "Usuário atualizado com sucesso!",
-            usuario
-        });
     }
 
-    deleteUser(req: Request, res: Response): Response {
-        const id = Number(req.params.id);
+    async updateUsuario(
+        req: Request,
+        res: Response
+    ) {
 
-        const deleted = this.service.delete(id);
+        try {
 
-        if (!deleted) {
-            return res.status(404).json({ mensagem: "Usuário não encontrado!" });
+            const id = Number(
+                req.params.id
+            );
+
+            const { email, senha } = req.body;
+
+            await this.service.update(
+                id,
+                email,
+                senha
+            );
+
+            return res.status(200).json({
+                mensagem: "Usuário atualizado com sucesso"
+            });
+
+        } catch {
+
+            return res.status(500).json({
+                mensagem: "Erro interno"
+            });
+
         }
+    }
 
-        return res.status(204).send();
+    async deleteUsuario(
+        req: Request,
+        res: Response
+    ) {
+
+        try {
+
+            const id = Number(
+                req.params.id
+            );
+
+            await this.service.delete(id);
+
+            return res.status(204).send();
+
+        } catch {
+
+            return res.status(500).json({
+                mensagem: "Erro interno"
+            });
+
+        }
     }
 }
 ```
 
 ---
 
-## **Routes – `routes/UserRoutes.ts`**
+# 8. Routes
+
+Define os endpoints da aplicação.
+
+## routes/UsuarioRoutes.ts
 
 ```ts
 import { Router } from "express";
-import { UserController } from "../controllers/UserController";
+import { UsuarioController } from "../controllers/UsuarioController";
 
 const router = Router();
-const controller = new UserController();
 
-router.get("/users", (req, res) => controller.listAllUsers(req, res));
-router.post("/users", (req, res) => controller.createUser(req, res));
-router.put("/users/:id", (req, res) => controller.updateUser(req, res));
-router.delete("/users/:id", (req, res) => controller.deleteUser(req, res));
+const controller =
+    new UsuarioController();
+
+router.get(
+    "/usuarios",
+    (req, res) =>
+        controller.listUsuarios(req, res)
+);
+
+router.get(
+    "/usuarios/:id",
+    (req, res) =>
+        controller.getUsuario(req, res)
+);
+
+router.post(
+    "/usuarios",
+    (req, res) =>
+        controller.createUsuario(req, res)
+);
+
+router.put(
+    "/usuarios/:id",
+    (req, res) =>
+        controller.updateUsuario(req, res)
+);
+
+router.delete(
+    "/usuarios/:id",
+    (req, res) =>
+        controller.deleteUsuario(req, res)
+);
 
 export default router;
 ```
 
 ---
 
-## **Server – `server.ts`**
+# 9. Servidor
+
+## server.ts
 
 ```ts
-import express, { Application } from "express";
-import userRoutes from "./routes/UserRoutes";
+import express from "express";
+import usuarioRoutes from "./routes/UsuarioRoutes";
 
-const app: Application = express();
-const PORT = 3000;
+const app = express();
 
 app.use(express.json());
-app.use(userRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.use(usuarioRoutes);
+
+app.listen(3000, () => {
+    console.log(
+        "Servidor rodando na porta 3000"
+    );
 });
 ```
 
 ---
 
-# **5. Fluxo da aplicação**
+# 10. Fluxo da Aplicação
 
 Quando uma requisição chega:
 
-1. **Route** recebe a requisição
-2. Encaminha para o **Controller**
-3. O **Controller valida entrada e chama o Service**
-4. O **Service executa a regra de negócio**
-5. O resultado volta para o Controller
-6. O Controller retorna a resposta HTTP
+1. A Route recebe a requisição.
+2. Encaminha para o Controller.
+3. O Controller valida os dados.
+4. O Controller chama o Service.
+5. O Service executa SQL no banco.
+6. O resultado retorna para o Controller.
+7. O Controller envia a resposta HTTP.
+
+Fluxo:
+
+```txt
+Cliente
+   ↓
+Route
+   ↓
+Controller
+   ↓
+Service
+   ↓
+MySQL
+```
 
 ---
 
-# **6. Exercícios**
+# Exercícios
 
-1. Criar entidade **Produto** com MVC + Service.
-2. Implementar validações no Service (ex: email duplicado).
-3. Adicionar busca por ID no Service.
-4. Melhorar tratamento de erros com mensagens padronizadas.
+1. Adicionar validação para email duplicado.
+2. Criar endpoint para buscar usuário por ID.
+3. Validar tamanho mínimo da senha.
+4. Retornar mensagem de erro personalizada.
+5. Impedir cadastro com email vazio.
+6. Criar endpoint para alterar apenas a senha.
 
 ---
 
-# **Resumo**
+# Resumo
 
-* MVC organiza a estrutura da aplicação.
-* O **Service separa a lógica de negócio do Controller**.
-* O Controller deve ser leve e apenas orquestrar chamadas.
-* Essa arquitetura melhora manutenção, escalabilidade e organização do código.
+* MVC organiza o projeto.
+* Routes recebem requisições.
+* Controllers controlam o fluxo.
+* Services contêm regras de negócio.
+* Models representam as entidades.
+* MySQL realiza persistência dos dados.
+* A separação de responsabilidades facilita manutenção e escalabilidade.
