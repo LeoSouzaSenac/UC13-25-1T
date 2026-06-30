@@ -1,4 +1,4 @@
-# Aula - API REST com TypeORM, Repositories, Middlewares e Bcrypt (MVC sem View)
+# Aula - API REST com TypeORM, Services, Repositories e Middlewares (MVC sem View)
 
 ## Objetivos da aula
 
@@ -6,6 +6,7 @@
 - Criar entidades e mapear para tabelas usando decorators.
 - Implementar relacionamentos (One-to-Many, Many-to-One) no TypeORM.
 - Entender por que separar o acesso ao banco em uma camada própria de Repository, além do Controller.
+- Entender por que existe também uma camada de Service entre o Controller e o Repository, e o que ela concentra.
 - Implementar o CRUD completo (Create, Read, Update, Delete) para `User` e `Post`.
 - Criar middlewares de validação e de tratamento de erros.
 - Usar bcrypt para nunca salvar senhas em texto puro no banco (ainda sem login/JWT, isso fica para uma aula futura).
@@ -46,21 +47,24 @@ No SQL manual você escreve a query. No ORM você descreve o que quer, e ele ger
 
 ## Arquitetura do projeto
 
-O projeto vai seguir um padrão MVC sem View, com uma camada extra de Repository entre o Controller e o banco de dados:
+O projeto vai seguir um padrão MVC sem View, com duas camadas extras entre a Rota e o banco de dados: Service e Repository.
 
 ```
-Rota -> Middleware -> Controller -> Repository -> Banco de Dados
+Rota -> Middleware -> Controller -> Service -> Repository -> Banco de Dados
 ```
 
-Cada seta representa uma responsabilidade diferente, e cada camada só conhece a camada imediatamente abaixo dela.
+Cada seta representa uma responsabilidade diferente, e cada camada só conhece a camada imediatamente abaixo dela. O Controller não fala diretamente com o Repository, ele sempre passa pelo Service.
 
 ### Responsabilidade de cada camada
 
 - **Model (Entidade)**: descreve a estrutura dos dados e como eles se relacionam entre si. Não tem lógica de negócio, é só a "planta" da tabela.
-- **Repository**: é o único lugar do projeto que conversa diretamente com o `AppDataSource` e com os métodos do TypeORM (`find`, `save`, `delete`, etc). Concentra todas as queries relacionadas a uma entidade.
+- **Repository**: é o único lugar do projeto que conversa diretamente com o `AppDataSource` e com os métodos do TypeORM (`find`, `save`, `delete`, etc). Concentra todas as queries relacionadas a uma entidade, sem saber nada sobre regras de negócio.
+- **Service**: concentra a lógica de negócio da aplicação. É aqui que vivem regras como "a senha precisa ser transformada em hash antes de salvar", "não pode existir dois usuários com o mesmo email", "se o usuário não existir, lance um erro". O Service chama um ou mais Repositories para buscar ou persistir dados, mas nunca fala diretamente com `req` e `res` (ele não sabe que existe um HTTP por trás de quem o chamou). Isso permite, por exemplo, reaproveitar a mesma regra de negócio em outro lugar (um script, uma fila, um teste) sem depender do Express.
 - **Middleware**: funções que rodam antes (ou depois) do controller, para validar dados, tratar erros, checar permissões, etc. Servem para tirar responsabilidades repetidas de dentro dos controllers.
-- **Controller**: recebe a requisição HTTP, extrai os dados necessários (`req.body`, `req.params`), chama o Repository para executar a operação, e devolve uma resposta HTTP (`res.json`, `res.status`). Não deveria conter lógica de acesso a banco nem lógica de validação pesada.
+- **Controller**: recebe a requisição HTTP, extrai os dados necessários (`req.body`, `req.params`), chama o Service para executar a operação, e devolve uma resposta HTTP (`res.json`, `res.status`). Não deveria conter lógica de acesso a banco, nem lógica de negócio, nem validação pesada: ele só traduz HTTP para uma chamada de Service, e o resultado do Service de volta para HTTP.
 - **Routes**: apenas conecta uma URL + método HTTP (GET, POST, PUT, DELETE) a um método do Controller. Não tem lógica nenhuma, só encaminhamento.
+
+Resumindo a diferença entre Service e Repository, que costuma gerar dúvida: o Repository sabe **como buscar/salvar dados** (a query); o Service sabe **o que fazer com esses dados** (a regra de negócio). Um exemplo prático: gerar o hash da senha com bcrypt é uma regra de negócio (vai para o Service); executar o `INSERT` no banco é acesso a dado (vai para o Repository).
 
 ---
 
@@ -159,6 +163,9 @@ src/
  |- repositories/
  |   |- UserRepository.ts
  |   |- PostRepository.ts
+ |- services/
+ |   |- UserService.ts
+ |   |- PostService.ts
  |- middlewares/
  |   |- errorHandler.ts
  |   |- asyncHandler.ts
@@ -420,7 +427,185 @@ Note que nos dois arquivos acima exportamos um objeto literal (`{ findAll, findB
 
 ---
 
-## Middlewares
+## A camada Service
+
+O Repository sabe buscar e salvar dados, mas não sabe nada sobre regras de negócio. Se colocássemos a geração do hash de senha, ou a checagem de "esse usuário existe?", direto no Controller, voltaríamos ao mesmo problema do início da aula: o Controller acumulando responsabilidades demais.
+
+A camada Service existe exatamente para isso: ela fica entre o Controller e o Repository, e concentra toda a lógica de negócio da aplicação. O Controller chama o Service, o Service decide as regras e chama o Repository quando precisa ler ou gravar algo no banco.
+
+Algumas regras que pertencem ao Service (e não ao Controller nem ao Repository):
+- Gerar o hash da senha com bcrypt antes de salvar um usuário.
+- Verificar se o usuário existe antes de tentar atualizar ou deletar, e lançar um erro caso não exista.
+- Verificar se o usuário dono de um post existe antes de criar o post.
+- Qualquer decisão de negócio que não seja "ler/escrever no banco" nem "lidar com req/res".
+
+Repare que o Service, diferente do Controller, não recebe `req` e `res`: ele recebe e retorna apenas dados simples (strings, números, objetos das entidades). Isso é proposital, porque o Service não deveria saber que está sendo chamado a partir de uma requisição HTTP. No futuro, esse mesmo Service poderia ser chamado por um script de linha de comando, por uma fila de processamento, ou por um teste automatizado, sem precisar de nenhuma mudança.
+
+Quando uma regra de negócio falha (por exemplo, "usuário não encontrado"), o Service lança um erro (`throw`) em vez de montar uma resposta HTTP. Quem decide o status code e o formato da resposta é sempre o Controller (ou, em caso de erro inesperado, o `errorHandler`).
+
+Arquivo `src/services/UserService.ts`:
+
+```ts
+import bcrypt from 'bcrypt';
+import { UserRepository } from '../repositories/UserRepository';
+import { User } from '../models/User';
+
+// Criamos uma classe de erro simples para representar "não encontrado".
+// Isso permite que o Controller (ou o errorHandler) identifique esse tipo
+// de erro de forma mais clara do que apenas checando uma mensagem de texto.
+export class NotFoundError extends Error {}
+
+export const UserService = {
+    // Retorna todos os usuários. Aqui ainda não há regra de negócio nenhuma,
+    // mas o método existe mesmo assim, para o Controller nunca falar
+    // diretamente com o Repository.
+    async listAll() {
+        return UserRepository.findAll();
+    },
+
+    // Busca um usuário pelo id. Se não existir, é o Service quem decide
+    // lançar o erro, e não o Controller.
+    async getById(id: number) {
+        const user = await UserRepository.findById(id);
+
+        if (!user) {
+            throw new NotFoundError('Usuário não encontrado.');
+        }
+
+        return user;
+    },
+
+    // Cria um novo usuário. Aqui mora a regra de negócio "a senha precisa
+    // virar um hash antes de ser persistida".
+    async create(data: { name: string; email: string; password: string }) {
+        // 10 é o número de saltRounds: o "custo" computacional do hash.
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        const user = UserRepository.create({
+            name: data.name,
+            email: data.email,
+            password: hashedPassword,
+        });
+
+        const savedUser = await UserRepository.save(user);
+
+        // Removemos a senha do objeto antes de devolver para o Controller.
+        // Essa também é uma regra de negócio: "a senha nunca deve sair
+        // do Service", então não é responsabilidade do Controller lembrar
+        // de fazer isso.
+        return omitPassword(savedUser);
+    },
+
+    // Atualiza um usuário existente.
+    async update(
+        id: number,
+        data: { name?: string; email?: string; password?: string }
+    ) {
+        const user = await UserRepository.findById(id);
+
+        if (!user) {
+            throw new NotFoundError('Usuário não encontrado.');
+        }
+
+        if (data.name) user.name = data.name;
+        if (data.email) user.email = data.email;
+
+        // Se uma nova senha foi enviada, geramos um novo hash para ela.
+        // Se não foi enviada, mantemos a senha antiga sem alteração.
+        if (data.password) {
+            user.password = await bcrypt.hash(data.password, 10);
+        }
+
+        const updatedUser = await UserRepository.save(user);
+
+        return omitPassword(updatedUser);
+    },
+
+    // Remove um usuário. Se não existir, lança o mesmo erro de "não encontrado".
+    async delete(id: number) {
+        const result = await UserRepository.delete(id);
+
+        if (result.affected === 0) {
+            throw new NotFoundError('Usuário não encontrado.');
+        }
+    },
+};
+
+// Função auxiliar privada deste arquivo, usada para remover o campo
+// password de um objeto User antes de devolvê-lo para fora do Service.
+function omitPassword(user: User) {
+    const { password, ...rest } = user;
+    return rest;
+}
+```
+
+Arquivo `src/services/PostService.ts`:
+
+```ts
+import { PostRepository } from '../repositories/PostRepository';
+import { UserRepository } from '../repositories/UserRepository';
+import { NotFoundError } from './UserService';
+
+export const PostService = {
+    async listAll() {
+        return PostRepository.findAll();
+    },
+
+    async getById(id: number) {
+        const post = await PostRepository.findById(id);
+
+        if (!post) {
+            throw new NotFoundError('Post não encontrado.');
+        }
+
+        return post;
+    },
+
+    // Cria um post, mas antes verifica se o usuário dono dele realmente existe.
+    // Essa verificação é uma regra de negócio, por isso vive aqui, e não no
+    // Controller nem no Repository.
+    async create(data: { title: string; userId: number }) {
+        const user = await UserRepository.findById(data.userId);
+
+        if (!user) {
+            throw new NotFoundError('Usuário não encontrado.');
+        }
+
+        const post = PostRepository.create({ title: data.title, user });
+        return PostRepository.save(post);
+    },
+
+    async update(id: number, data: { title?: string; userId?: number }) {
+        const post = await PostRepository.findById(id);
+
+        if (!post) {
+            throw new NotFoundError('Post não encontrado.');
+        }
+
+        if (data.title) post.title = data.title;
+
+        if (data.userId) {
+            const user = await UserRepository.findById(data.userId);
+            if (!user) {
+                throw new NotFoundError('Usuário não encontrado.');
+            }
+            post.user = user;
+        }
+
+        return PostRepository.save(post);
+    },
+
+    async delete(id: number) {
+        const result = await PostRepository.delete(id);
+
+        if (result.affected === 0) {
+            throw new NotFoundError('Post não encontrado.');
+        }
+    },
+};
+```
+
+Como o `NotFoundError` é lançado dentro do Service (e não respondido diretamente como JSON), precisamos que o Controller (ou o `errorHandler`) saiba reconhecer esse tipo de erro e transformá-lo em uma resposta 404. Vamos resolver isso já nos Controllers a seguir, e reforçar no `errorHandler` mais abaixo.
 
 Um middleware, no Express, é uma função que recebe `req`, `res` e uma terceira coisa chamada `next`. Ele roda no meio do caminho entre a requisição chegar e o Controller ser executado (por isso o nome "middle" + "ware"). Um middleware pode:
 
@@ -459,10 +644,12 @@ Arquivo `src/middlewares/errorHandler.ts`:
 
 ```ts
 import { Request, Response, NextFunction } from 'express';
+import { NotFoundError } from '../services/UserService';
 
 // Esse middleware centraliza o tratamento de erros da aplicação inteira.
 // Em vez de cada controller decidir como formatar uma resposta de erro,
-// todo erro inesperado cai aqui, e respondemos de forma padronizada.
+// todo erro inesperado (ou lançado propositalmente por um Service) cai
+// aqui, e respondemos de forma padronizada.
 export function errorHandler(
     err: any,
     req: Request,
@@ -470,6 +657,11 @@ export function errorHandler(
     next: NextFunction
 ) {
     console.error('Erro capturado pelo errorHandler:', err);
+
+    // Erro de negócio "não encontrado", lançado por algum Service.
+    if (err instanceof NotFoundError) {
+        return res.status(404).json({ message: err.message });
+    }
 
     // Erro de violação de chave única do MySQL (ex: email duplicado).
     // O TypeORM repassa o código de erro original do driver do banco.
@@ -548,98 +740,47 @@ Os dois métodos principais que vamos usar:
 
 ## Controllers com CRUD completo
 
-O Controller fica responsável apenas por: ler dados da requisição, chamar o Repository, e formatar a resposta. Toda a lógica de banco já está no Repository, e toda a validação de entrada já aconteceu no Middleware antes da requisição chegar aqui.
+O Controller fica responsável apenas por: ler dados da requisição, chamar o Service, e formatar a resposta. Toda a regra de negócio (incluindo o hash de senha e as checagens de existência) já está no Service, toda a query já está no Repository, e toda a validação de entrada já aconteceu no Middleware antes da requisição chegar aqui. O Controller, portanto, fica bem enxuto: ele basicamente traduz HTTP em chamada de Service, e chamada de Service de volta em HTTP.
 
 Arquivo `src/controllers/UserController.ts`:
 
 ```ts
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import { UserRepository } from '../repositories/UserRepository';
+import { UserService } from '../services/UserService';
 
 export class UserController {
     // GET /users -> lista todos os usuários
     async list(req: Request, res: Response) {
-        const users = await UserRepository.findAll();
+        const users = await UserService.listAll();
         return res.json(users);
     }
 
     // GET /users/:id -> busca um usuário específico
     async getById(req: Request, res: Response) {
         const id = Number(req.params.id);
-        const user = await UserRepository.findById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
-
+        const user = await UserService.getById(id);
         return res.json(user);
     }
 
     // POST /users -> cria um novo usuário
     async create(req: Request, res: Response) {
         const { name, email, password } = req.body;
-
-        // Geramos o hash da senha ANTES de criar o objeto User.
-        // 10 é o número de saltRounds: o "custo" computacional do hash.
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = UserRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-        });
-
-        const savedUser = await UserRepository.save(user);
-
-        // Removemos a senha do objeto antes de devolver na resposta.
-        // Mesmo o campo sendo select:false nas buscas normais, aqui o objeto
-        // savedUser ainda está em memória com a senha (pois acabamos de criá-lo),
-        // então apagamos manualmente antes de responder ao cliente.
-        const { password: _, ...userWithoutPassword } = savedUser;
-
-        return res.status(201).json(userWithoutPassword);
+        const user = await UserService.create({ name, email, password });
+        return res.status(201).json(user);
     }
 
     // PUT /users/:id -> atualiza um usuário existente
     async update(req: Request, res: Response) {
         const id = Number(req.params.id);
         const { name, email, password } = req.body;
-
-        const user = await UserRepository.findById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
-
-        // Atualizamos só os campos que vieram no corpo da requisição.
-        if (name) user.name = name;
-        if (email) user.email = email;
-
-        // Se uma nova senha foi enviada, geramos um novo hash para ela.
-        // Se não foi enviada, mantemos a senha antiga sem alteração.
-        if (password) {
-            user.password = await bcrypt.hash(password, 10);
-        }
-
-        const updatedUser = await UserRepository.save(user);
-
-        const { password: _, ...userWithoutPassword } = updatedUser;
-
-        return res.json(userWithoutPassword);
+        const user = await UserService.update(id, { name, email, password });
+        return res.json(user);
     }
 
     // DELETE /users/:id -> remove um usuário
     async delete(req: Request, res: Response) {
         const id = Number(req.params.id);
-
-        const result = await UserRepository.delete(id);
-
-        // affected indica quantas linhas foram removidas.
-        // Se for 0, significa que não existia usuário com esse id.
-        if (result.affected === 0) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
+        await UserService.delete(id);
 
         // 204 (No Content) é o status correto para "deu certo, mas não tenho
         // nada para retornar no corpo da resposta".
@@ -648,83 +789,47 @@ export class UserController {
 }
 ```
 
+Repare que o Controller não tem mais nenhum `if (!user)`, nenhum `bcrypt`, nenhum acesso a Repository. Quando o usuário não existe, quem lança o erro é o `UserService` (com `NotFoundError`), e quem transforma esse erro em uma resposta 404 é o `errorHandler`, através do `asyncHandler` que veremos logo mais.
+
 Arquivo `src/controllers/PostController.ts`:
 
 ```ts
 import { Request, Response } from 'express';
-import { PostRepository } from '../repositories/PostRepository';
-import { UserRepository } from '../repositories/UserRepository';
+import { PostService } from '../services/PostService';
 
 export class PostController {
     // GET /posts -> lista todos os posts, com o usuário dono de cada um
     async list(req: Request, res: Response) {
-        const posts = await PostRepository.findAll();
+        const posts = await PostService.listAll();
         return res.json(posts);
     }
 
     // GET /posts/:id -> busca um post específico
     async getById(req: Request, res: Response) {
         const id = Number(req.params.id);
-        const post = await PostRepository.findById(id);
-
-        if (!post) {
-            return res.status(404).json({ message: 'Post não encontrado.' });
-        }
-
+        const post = await PostService.getById(id);
         return res.json(post);
     }
 
     // POST /posts -> cria um novo post vinculado a um usuário existente
     async create(req: Request, res: Response) {
         const { title, userId } = req.body;
-
-        const user = await UserRepository.findById(userId);
-
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
-
-        const post = PostRepository.create({ title, user });
-        const savedPost = await PostRepository.save(post);
-
-        return res.status(201).json(savedPost);
+        const post = await PostService.create({ title, userId });
+        return res.status(201).json(post);
     }
 
     // PUT /posts/:id -> atualiza o título (e/ou o dono) de um post
     async update(req: Request, res: Response) {
         const id = Number(req.params.id);
         const { title, userId } = req.body;
-
-        const post = await PostRepository.findById(id);
-
-        if (!post) {
-            return res.status(404).json({ message: 'Post não encontrado.' });
-        }
-
-        if (title) post.title = title;
-
-        if (userId) {
-            const user = await UserRepository.findById(userId);
-            if (!user) {
-                return res.status(404).json({ message: 'Usuário não encontrado.' });
-            }
-            post.user = user;
-        }
-
-        const updatedPost = await PostRepository.save(post);
-        return res.json(updatedPost);
+        const post = await PostService.update(id, { title, userId });
+        return res.json(post);
     }
 
     // DELETE /posts/:id -> remove um post
     async delete(req: Request, res: Response) {
         const id = Number(req.params.id);
-
-        const result = await PostRepository.delete(id);
-
-        if (result.affected === 0) {
-            return res.status(404).json({ message: 'Post não encontrado.' });
-        }
-
+        await PostService.delete(id);
         return res.status(204).send();
     }
 }
@@ -828,10 +933,11 @@ Para fixar, vamos seguir o caminho de um `POST /users` do início ao fim:
 1. A requisição chega na rota `POST /users`.
 2. O middleware `validateUser` roda primeiro. Se faltar algum campo, a requisição já é respondida com erro 400 e para por aqui.
 3. Se passou na validação, o `asyncHandler` chama o método `create` do `UserController`.
-4. O `UserController.create` lê `name`, `email` e `password` do `req.body`, gera o hash da senha com `bcrypt.hash`, e chama `UserRepository.create` e `UserRepository.save`.
-5. O `UserRepository` é o único lugar que efetivamente conversa com o `AppDataSource` e executa a query no MySQL através do TypeORM.
-6. O resultado volta para o Controller, que remove a senha do objeto e responde ao cliente com status 201.
-7. Se em qualquer um desses passos der um erro inesperado (ex: queda de conexão com o banco), o `asyncHandler` captura esse erro e repassa para o `errorHandler`, que formata uma resposta de erro padronizada.
+4. O `UserController.create` lê `name`, `email` e `password` do `req.body` e chama `UserService.create`, passando esses dados adiante.
+5. O `UserService.create` aplica a regra de negócio: gera o hash da senha com `bcrypt.hash`, chama `UserRepository.create` e `UserRepository.save`, e remove a senha do objeto antes de devolver o resultado.
+6. O `UserRepository` é o único lugar que efetivamente conversa com o `AppDataSource` e executa a query no MySQL através do TypeORM.
+7. O resultado sobe de volta: Repository -> Service -> Controller, que responde ao cliente com status 201.
+8. Se em qualquer um desses passos der um erro (seja um `NotFoundError` lançado por um Service, seja um erro inesperado como queda de conexão com o banco), o `asyncHandler` captura esse erro e repassa para o `errorHandler`, que formata uma resposta de erro padronizada.
 
 ---
 
@@ -841,20 +947,23 @@ Para fixar, vamos seguir o caminho de um `POST /users` do início ao fim:
 2. Crie a entidade `Product`, com os campos `id` (PK, auto-incremento), `name` (string), `price` (número) e `category` (referência para `Category`, relação ManyToOne).
 3. Configure o relacionamento entre `Category` e `Product`: uma categoria pode ter muitos produtos, e um produto pertence a uma única categoria.
 4. Crie a `CategoryRepository` e a `ProductRepository`, seguindo o mesmo padrão usado em `UserRepository` e `PostRepository`.
-5. Crie o `CategoryController` e o `ProductController` com CRUD completo (list, getById, create, update, delete), usando os repositories do exercício anterior. A rota `GET /products` deve incluir os dados da categoria associada usando `relations`.
-6. Crie os middlewares `validateCategory` e `validateProduct`, seguindo o mesmo padrão de `validateUser` e `validatePost`.
-7. Registre todas as novas rotas em `src/routes/index.ts`, sempre envolvendo os controllers com `asyncHandler`.
-8. (Desafio) No `UserRepository`, crie um método `existsByEmail(email: string)` que retorna `true` ou `false`, e use ele dentro do middleware `validateUser` para impedir a criação de um usuário com um email já cadastrado, respondendo com status 409 nesse caso, sem precisar esperar o erro chegar até o `errorHandler`.
+5. Crie o `CategoryService` e o `ProductService`, seguindo o mesmo padrão usado em `UserService` e `PostService` (incluindo o uso de `NotFoundError` quando um registro não existir).
+6. Crie o `CategoryController` e o `ProductController` com CRUD completo (list, getById, create, update, delete), chamando sempre o Service correspondente, nunca o Repository diretamente. A rota `GET /products` deve incluir os dados da categoria associada usando `relations`.
+7. Crie os middlewares `validateCategory` e `validateProduct`, seguindo o mesmo padrão de `validateUser` e `validatePost`.
+8. Registre todas as novas rotas em `src/routes/index.ts`, sempre envolvendo os controllers com `asyncHandler`.
+9. (Desafio) No `UserService`, crie um método `existsByEmail(email: string)` que use o `UserRepository` e retorne `true` ou `false`, e use esse método dentro de `UserService.create` para lançar um erro próprio (ex: `ConflictError`) quando o email já estiver cadastrado, antes mesmo de tentar gerar o hash da senha.
 
 ---
 
 ## Resumo geral
 
 - ORM converte objetos/classes em tabelas; o TypeORM usa decorators para fazer esse mapeamento.
-- A arquitetura segue MVC sem View, com uma camada extra de Repository: Rota -> Middleware -> Controller -> Repository -> Banco.
-- A camada Repository isola todo o acesso ao banco em um único lugar por entidade, deixando os Controllers mais simples e focados só no fluxo HTTP.
+- A arquitetura segue MVC sem View, com duas camadas extras: Rota -> Middleware -> Controller -> Service -> Repository -> Banco.
+- A camada Repository isola todo o acesso ao banco em um único lugar por entidade, sem saber nada de regras de negócio.
+- A camada Service concentra a lógica de negócio (hash de senha, checagens de existência, regras de validação mais complexas), chamando um ou mais Repositories e nunca lidando diretamente com `req`/`res`.
+- O Controller fica enxuto: só traduz HTTP em chamada de Service e o retorno do Service de volta em resposta HTTP.
 - Middlewares tiram responsabilidades repetidas (validação, tratamento de erro) de dentro dos Controllers.
 - `asyncHandler` evita que erros em funções `async` derrubem a requisição sem resposta para o cliente.
-- `errorHandler` centraliza o tratamento de erros, sempre registrado por último na cadeia de middlewares.
-- `bcrypt.hash` transforma a senha em um hash seguro antes de salvar no banco; a senha original nunca é armazenada.
-- O campo `password` na entidade `User` usa `select: false` para não vazar acidentalmente em buscas normais, e é removido manualmente das respostas onde ainda aparece em memória.
+- `errorHandler` centraliza o tratamento de erros, inclusive os erros de negócio lançados pelos Services (como `NotFoundError`), e é sempre registrado por último na cadeia de middlewares.
+- `bcrypt.hash` transforma a senha em um hash seguro antes de salvar no banco; a senha original nunca é armazenada, e essa lógica vive no Service, não no Controller.
+- O campo `password` na entidade `User` usa `select: false` para não vazar acidentalmente em buscas normais, e é removido manualmente das respostas dentro do próprio Service.
